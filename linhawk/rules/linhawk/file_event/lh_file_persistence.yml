@@ -1,0 +1,68 @@
+title: ld.so.preload Created
+id: 369c4ab7-2072-411e-a3a0-1c2d3109d946
+status: stable
+description: /etc/ld.so.preload is a classic userland rootkit hook.
+author: LinHawk
+logsource:
+    product: linux
+    category: file_event
+detection:
+    selection:
+        TargetFilename: /etc/ld.so.preload
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.defense-evasion
+    - attack.t1574.006
+level: critical
+---
+title: SSH Authorized Keys File Created
+id: 4013f572-164a-431c-ac56-b44116c46a1a
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: file_event
+detection:
+    selection:
+        TargetFilename|endswith:
+            - '/.ssh/authorized_keys'
+            - '/.ssh/authorized_keys2'
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.t1098.004
+level: medium
+---
+title: Systemd Unit Or Cron File Created
+id: 8ca8986a-9265-4b24-a36e-fa0d36ba92aa
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: file_event
+detection:
+    selection:
+        TargetFilename|startswith:
+            - '/etc/systemd/system/'
+            - '/usr/lib/systemd/system/'
+            - '/lib/systemd/system/'
+            - '/etc/cron.d/'
+            - '/etc/cron.daily/'
+            - '/etc/cron.hourly/'
+            - '/var/spool/cron/'
+            - '/etc/init.d/'
+            - '/etc/rc.local'
+    filter_pkg:
+        Image|endswith:
+            - '/dpkg'
+            - '/rpm'
+            - '/dnf'
+            - '/yum'
+            - '/apt'
+    condition: selection and not filter_pkg
+tags:
+    - attack.persistence
+    - attack.t1543.002
+    - attack.t1053.003
+level: medium

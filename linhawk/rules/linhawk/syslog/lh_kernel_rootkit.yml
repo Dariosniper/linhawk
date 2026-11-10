@@ -1,0 +1,49 @@
+title: Out-Of-Tree Kernel Module Tainted Kernel
+id: 2b7c1f0e-4d1a-4c33-9a57-7f3e2a9d6c11
+status: stable
+description: Unsigned / out-of-tree module loaded - common for LKM rootkits (e.g. Diamorphine, Reptile).
+author: LinHawk
+logsource:
+    product: linux
+    service: syslog
+detection:
+    selection:
+        EventType: KERNEL_MODULE_TAINT
+    filter_known:
+        Module:
+            - vboxdrv
+            - vboxnetflt
+            - vboxnetadp
+            - nvidia
+            - zfs
+    condition: selection and not filter_known
+falsepositives:
+    - Third-party drivers (VirtualBox, NVIDIA, ZFS, EDR agents)
+tags:
+    - attack.persistence
+    - attack.defense-evasion
+    - attack.t1547.006
+    - attack.t1014
+level: high
+---
+title: Logging Daemon Stopped
+id: 5e0a8d3c-9b6f-4e21-8c4d-3f1b2a7e9d40
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: syslog
+detection:
+    keywords:
+        - 'rsyslogd* exiting on signal'
+        - 'Stopping System Logging Service'
+        - 'Stopped Journal Service'
+        - 'auditd*shutting down'
+        - 'The audit daemon is exiting'
+    condition: keywords
+falsepositives:
+    - Reboots, package upgrades
+tags:
+    - attack.defense-evasion
+    - attack.t1562.001
+level: medium

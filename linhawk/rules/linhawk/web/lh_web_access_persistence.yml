@@ -1,0 +1,206 @@
+title: Known Web Shell Accessed
+id: 63fcfb56-446d-4960-8219-44246a2741ea
+status: stable
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    sel_names:
+        cs-uri-stem|endswith:
+            - /c99.php
+            - /r57.php
+            - /wso.php
+            - /b374k.php
+            - /alfa.php
+            - /shell.php
+            - /cmd.php
+            - /cmd.jsp
+            - /cmd.aspx
+            - /webshell.php
+            - /up.php
+            - /mini.php
+            - /x.php
+            - /1.php
+    sel_param:
+        cs-uri-stem|re: '/(uploads?|images?|tmp|files|media|wp-content/uploads)/.*\.(php\d?|phtml|phar|jsp|jspx)$'
+    sel_cmd:
+        Query|re|i: '(^|&)(cmd|exec|command|execute|c|pass|act)='
+    filter_404:
+        sc-status: 404
+    condition: (sel_names or (sel_param and sel_cmd)) and not filter_404
+falsepositives:
+    - Legitimate scripts with these names
+tags:
+    - attack.persistence
+    - attack.t1505.003
+level: high
+---
+title: Script Executed From Upload Directory
+id: bb7433e4-463f-462f-9804-cd6116484fa7
+status: experimental
+description: Server-side script served from an upload folder with HTTP 200 - typical of uploaded web shells.
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        cs-uri-stem|re: '/(uploads?|images?|tmp|files|media|wp-content/uploads)/.*\.(php\d?|phtml|phar|jsp|jspx|asp|aspx)$'
+        sc-status: 200
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.t1505.003
+level: medium
+---
+title: Sensitive File Disclosed By Web Server
+id: 54b3ed2d-77dc-474d-8c41-c65cf2dc6649
+status: stable
+description: A secret or source-control file was served with HTTP 200 (exposure, not just an attempt).
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        cs-uri-stem|endswith:
+            - /.env
+            - /.git/config
+            - /.git/HEAD
+            - /.svn/entries
+            - /.htpasswd
+            - /.aws/credentials
+            - /id_rsa
+            - /wp-config.php.bak
+            - /wp-config.php~
+            - /config.php.bak
+            - /.DS_Store
+            - /backup.sql
+            - /dump.sql
+            - /database.sql
+            - /phpinfo.php
+            - /server-status
+        sc-status: 200
+        sc-bytes|gt: 0
+    condition: selection
+tags:
+    - attack.collection
+    - attack.credential-access
+    - attack.t1552.001
+level: high
+---
+title: Web 404 Response
+id: d278c7d4-5c8b-4358-b120-a23e553a0c0d
+name: lh_web_404
+status: stable
+description: Base rule for content discovery correlation.
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        sc-status: 404
+    condition: selection
+level: informational
+---
+title: Web Content Discovery / Directory Brute Force
+id: 985da18d-a056-4f9c-80a1-4877a0210ff9
+status: stable
+description: 100 or more HTTP 404 from the same client in 5 minutes.
+author: LinHawk
+correlation:
+    type: event_count
+    rules:
+        - lh_web_404
+    group-by:
+        - SrcIP
+    timespan: 5m
+    condition:
+        gte: 100
+tags:
+    - attack.reconnaissance
+    - attack.discovery
+    - attack.t1595.003
+    - attack.t1083
+level: medium
+---
+title: Web Login Request
+id: b64d898b-3a35-442b-840a-085df92d5c55
+name: lh_web_login_post
+status: stable
+description: Base rule for web login brute force correlation.
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        cs-method: POST
+        cs-uri-stem|contains:
+            - wp-login.php
+            - xmlrpc.php
+            - /login
+            - /signin
+            - /sign-in
+            - /logon
+            - /auth
+            - /admin
+            - /user/login
+            - /j_security_check
+            - /api/token
+    condition: selection
+level: informational
+---
+title: Web Login Brute Force
+id: 8ec7ef59-d9f8-47f7-89c8-f4d4fe4ba48a
+status: stable
+description: 20 or more POST requests to login endpoints from the same client in 5 minutes.
+author: LinHawk
+correlation:
+    type: event_count
+    rules:
+        - lh_web_login_post
+    group-by:
+        - SrcIP
+    timespan: 5m
+    condition:
+        gte: 20
+tags:
+    - attack.credential-access
+    - attack.t1110
+level: high
+---
+title: PHP Dangerous Function Error
+id: d7cd7cae-a7b2-4b54-b844-c77e2be9e02b
+status: experimental
+description: Web server error log shows eval'd code or blocked execution functions - often web shell activity.
+author: LinHawk
+logsource:
+    service: weberror
+detection:
+    keywords:
+        - "eval()'d code"
+        - 'system() has been disabled'
+        - 'shell_exec() has been disabled'
+        - 'passthru() has been disabled'
+        - 'proc_open() has been disabled'
+        - 'popen() has been disabled'
+        - 'assert(): Assertion'
+    condition: keywords
+tags:
+    - attack.execution
+    - attack.persistence
+    - attack.t1505.003
+level: medium
+---
+title: ModSecurity Blocked Request
+id: 5d0f3c91-7a2e-4b8f-9c1d-2e6a4b8c0f13
+status: stable
+author: LinHawk
+logsource:
+    service: modsecurity
+detection:
+    keywords:
+        - 'ModSecurity: Access denied'
+    condition: keywords
+tags:
+    - attack.initial-access
+    - attack.t1190
+level: low

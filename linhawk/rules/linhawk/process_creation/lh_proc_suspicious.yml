@@ -1,0 +1,195 @@
+title: Reverse Shell Command Line
+id: 1c8cc957-3370-444c-8840-5d89c73d5d07
+status: stable
+description: Common reverse shell one-liners observed via auditd execve.
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    sel_devtcp:
+        CommandLine|contains:
+            - '/dev/tcp/'
+            - '/dev/udp/'
+    sel_nc:
+        CommandLine|re: '\b(nc|ncat|netcat)\b.*\s-(e|c)\s'
+    sel_socat:
+        CommandLine|contains|all:
+            - 'socat'
+            - 'exec:'
+    sel_script:
+        CommandLine|contains|all:
+            - 'socket'
+            - 'connect'
+        Image|contains:
+            - python
+            - perl
+            - ruby
+            - php
+    condition: 1 of sel_*
+tags:
+    - attack.execution
+    - attack.command-and-control
+    - attack.t1059.004
+level: critical
+---
+title: Download Piped To Shell
+id: 6f412df9-0c15-4446-92d4-ef84952890f2
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        CommandLine|re: '(curl|wget)\s.*\|\s*(sudo\s+)?(ba|da|z)?sh\b'
+    condition: selection
+tags:
+    - attack.execution
+    - attack.command-and-control
+    - attack.t1105
+    - attack.t1059.004
+level: high
+---
+title: Shell History Tampering
+id: bf19cabd-d6da-414b-9e5a-974b59bbfbb9
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        CommandLine|contains:
+            - 'history -c'
+            - 'unset HISTFILE'
+            - 'HISTSIZE=0'
+            - 'HISTFILESIZE=0'
+            - '.bash_history'
+            - '.zsh_history'
+    filter_read:
+        Image|endswith:
+            - '/cat'
+            - '/less'
+            - '/grep'
+    condition: selection and not filter_read
+tags:
+    - attack.defense-evasion
+    - attack.t1070.003
+level: high
+---
+title: Log File Cleared Or Deleted
+id: ce76be4c-a116-4df8-a0d3-ae7a3a015b7a
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    sel_tool:
+        Image|endswith:
+            - '/rm'
+            - '/shred'
+            - '/truncate'
+            - '/unlink'
+    sel_target:
+        CommandLine|contains:
+            - '/var/log/'
+            - 'wtmp'
+            - 'btmp'
+            - 'lastlog'
+    sel_journal:
+        CommandLine|contains:
+            - 'journalctl --vacuum'
+            - 'journalctl --rotate'
+    condition: (sel_tool and sel_target) or sel_journal
+falsepositives:
+    - logrotate / maintenance scripts
+tags:
+    - attack.defense-evasion
+    - attack.t1070.002
+level: high
+---
+title: Kernel Module Loaded
+id: 643a14cd-b983-428c-8a24-e2b6d6ad738f
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        Image|endswith:
+            - '/insmod'
+            - '/modprobe'
+    filter_remove:
+        CommandLine|contains: ' -r '
+    condition: selection and not filter_remove
+falsepositives:
+    - Driver installation, DKMS
+tags:
+    - attack.persistence
+    - attack.t1547.006
+level: medium
+---
+title: SUID Bit Set On File
+id: 90b2947d-8c5b-40dd-a2c5-9412c0f1a4fc
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        Image|endswith: '/chmod'
+        CommandLine|re: '\s(u\+s|\+s|[42][0-7]{3})\s'
+    condition: selection
+tags:
+    - attack.privilege-escalation
+    - attack.persistence
+    - attack.t1548.001
+level: high
+---
+title: Execution From Temporary Directory
+id: c66a77a7-f4e5-4de8-a7af-59ef38e75fa4
+status: experimental
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        Image|startswith:
+            - '/tmp/'
+            - '/dev/shm/'
+            - '/var/tmp/'
+    condition: selection
+falsepositives:
+    - Installers
+tags:
+    - attack.execution
+    - attack.defense-evasion
+    - attack.t1059
+level: medium
+---
+title: System Discovery Commands
+id: 1263fd90-66af-4a8b-b286-c4b010d46c70
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        Image|endswith:
+            - '/whoami'
+            - '/id'
+            - '/uname'
+            - '/hostname'
+            - '/ifconfig'
+    condition: selection
+tags:
+    - attack.discovery
+    - attack.t1033
+    - attack.t1082
+level: informational

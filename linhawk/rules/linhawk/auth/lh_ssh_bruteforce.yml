@@ -1,0 +1,89 @@
+title: SSH Failed Login
+id: 873dc5a6-057c-4bf4-96a4-5fd8396c1735
+name: lh_ssh_failed_login
+status: stable
+description: Single failed SSH authentication (base rule for brute force / spraying correlations).
+author: LinHawk
+logsource:
+    product: linux
+    service: sshd
+detection:
+    selection:
+        EventType: SSH_LOGIN_FAILED
+    condition: selection
+level: low
+---
+title: SSH Brute Force From Single Source
+id: 24773f4d-53e5-4c01-b2e6-deb348f87486
+status: stable
+description: 10 or more failed SSH logins from the same source IP within 5 minutes.
+author: LinHawk
+correlation:
+    type: event_count
+    rules:
+        - lh_ssh_failed_login
+    group-by:
+        - SrcIP
+        - Hostname
+    timespan: 5m
+    condition:
+        gte: 10
+tags:
+    - attack.credential-access
+    - attack.t1110.001
+level: high
+---
+title: SSH Password Spraying (Many Users From One Source)
+id: 205926e9-ce79-417c-bbc2-f2fc7d865aa8
+status: stable
+description: Failed SSH logins for 5 or more distinct usernames from one source IP within 10 minutes.
+author: LinHawk
+correlation:
+    type: value_count
+    rules:
+        - lh_ssh_failed_login
+    group-by:
+        - SrcIP
+    timespan: 10m
+    condition:
+        field: User
+        gte: 5
+tags:
+    - attack.credential-access
+    - attack.t1110.003
+level: high
+---
+title: SSH Login Success
+id: 40765955-1caa-40c0-8a79-f7cc04fb88ac
+name: lh_ssh_login_success_base
+status: stable
+description: Successful SSH login (base rule for brute force success correlation).
+author: LinHawk
+logsource:
+    product: linux
+    service: sshd
+detection:
+    selection:
+        EventType: SSH_LOGIN_SUCCESS
+    condition: selection
+level: informational
+---
+title: SSH Successful Login After Failures From Same Source
+id: 8b922564-9a4f-46f3-8551-e81b33b86322
+status: stable
+description: Failed logins followed by a successful login from the same IP within 30 minutes - possible successful brute force.
+author: LinHawk
+correlation:
+    type: temporal_ordered
+    rules:
+        - lh_ssh_failed_login
+        - lh_ssh_login_success_base
+    group-by:
+        - SrcIP
+    timespan: 30m
+tags:
+    - attack.credential-access
+    - attack.initial-access
+    - attack.t1110
+    - attack.t1078
+level: critical

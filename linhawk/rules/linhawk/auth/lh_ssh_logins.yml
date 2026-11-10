@@ -1,0 +1,66 @@
+title: SSH Logon
+id: 477786e8-254b-4132-a505-42eab06fd9ec
+status: stable
+description: Successful SSH logon (timeline context, like Hayabusa's "Logon" informational rules).
+author: LinHawk
+logsource:
+    product: linux
+    service: sshd
+detection:
+    selection:
+        EventType: SSH_LOGIN_SUCCESS
+    filter_root:
+        User: root
+    condition: selection and not filter_root
+tags:
+    - attack.initial-access
+    - attack.t1078
+level: informational
+---
+title: SSH Logon As Root
+id: 403ba79b-a72d-48c5-9611-a3bb96d096c1
+status: stable
+description: Direct SSH logon as root. Should be disabled (PermitRootLogin no) on hardened systems.
+author: LinHawk
+logsource:
+    product: linux
+    service: sshd
+detection:
+    selection:
+        EventType: SSH_LOGIN_SUCCESS
+        User: root
+    condition: selection
+falsepositives:
+    - Administrative access on systems where root login is allowed
+tags:
+    - attack.initial-access
+    - attack.privilege-escalation
+    - attack.t1078.003
+level: medium
+---
+title: SSH Logon From Public IP With Password
+id: ade6df03-4e9a-40e3-9363-0e228b7fffda
+status: experimental
+description: Password-based SSH logon from a non-RFC1918 address.
+author: LinHawk
+logsource:
+    product: linux
+    service: sshd
+detection:
+    selection:
+        EventType: SSH_LOGIN_SUCCESS
+        AuthMethod: password
+    filter_private:
+        SrcIP|cidr:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+            - 127.0.0.0/8
+            - ::1/128
+            - fc00::/7
+    condition: selection and not filter_private
+tags:
+    - attack.initial-access
+    - attack.t1078
+    - attack.t1133
+level: medium

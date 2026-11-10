@@ -1,0 +1,216 @@
+title: Web Vulnerability Scanner Request
+id: ed639fcb-28cf-4df9-9b26-317098488cf7
+name: lh_web_scanner_ua
+status: stable
+description: Request sent by a well-known offensive or vulnerability scanning tool.
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        cs-user-agent|contains:
+            - sqlmap
+            - nikto
+            - Nuclei
+            - gobuster
+            - DirBuster
+            - dirsearch
+            - feroxbuster
+            - wfuzz
+            - Fuzz Faster U Fool
+            - WPScan
+            - masscan
+            - zgrab
+            - Nmap Scripting Engine
+            - Acunetix
+            - Netsparker
+            - OpenVAS
+            - Nessus
+            - Hydra
+            - commix
+            - Arachni
+            - jaeles
+            - WhatWeb
+    condition: selection
+level: low
+---
+title: Web Vulnerability Scanner Activity
+id: 3f6b2d1e-8c4a-4e7f-b5d2-9a1c0e7f4b28
+status: stable
+description: Requests from a known scanner User-Agent (one alert per client and tool per hour; see the Count field).
+author: LinHawk
+correlation:
+    type: event_count
+    rules:
+        - lh_web_scanner_ua
+    group-by:
+        - SrcIP
+        - cs-user-agent
+    timespan: 1h
+    condition:
+        gte: 1
+falsepositives:
+    - Authorized vulnerability assessments
+tags:
+    - attack.reconnaissance
+    - attack.t1595.002
+level: medium
+---
+title: SQL Injection Attempt In Web Request
+id: 12d90ae2-4042-4cb5-8291-1a16e9a79e02
+status: stable
+description: SQL injection payload in the URL-decoded request URI.
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        UriDecoded|re|i: 'union(\s|/\*.*?\*/)+(all(\s|/\*.*?\*/)+)?select|\bselect\b.+\bfrom\b.+information_schema|(sleep|benchmark|pg_sleep)\s*\(\s*\d|waitfor\s+delay\s+''|\b(and|or)\b\s+[''"]?\d+[''"]?\s*=\s*[''"]?\d+|[''"]\s*(or|and)\s+[''"][^''"]*[''"]\s*=\s*[''"]|load_file\s*\(|into\s+(out|dump)file|(extractvalue|updatexml)\s*\(|@@version'
+    condition: selection
+falsepositives:
+    - Search pages that echo SQL keywords
+tags:
+    - attack.initial-access
+    - attack.t1190
+level: high
+---
+title: Path Traversal Or Local File Inclusion Attempt
+id: 4366478b-8e54-499f-90fb-84485125f1ab
+status: stable
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    sel_traversal:
+        UriDecoded|re: '(\.\.[/\\]){2,}'
+    sel_files:
+        UriDecoded|contains:
+            - /etc/passwd
+            - /etc/shadow
+            - /proc/self/environ
+            - /proc/self/cmdline
+            - win.ini
+            - boot.ini
+    sel_wrappers:
+        UriDecoded|contains:
+            - 'php://filter'
+            - 'php://input'
+            - 'expect://'
+            - 'zip://'
+            - 'phar://'
+            - 'file:///'
+    condition: 1 of sel_*
+tags:
+    - attack.initial-access
+    - attack.t1190
+level: high
+---
+title: Path Traversal With Successful Response
+id: d603fef9-709d-433f-b96c-1344d340dfa1
+status: stable
+description: Traversal / LFI payload answered with HTTP 200 and a body - possible successful file disclosure.
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    sel_payload:
+        - UriDecoded|re: '(\.\.[/\\]){3,}'
+        - UriDecoded|contains:
+              - /etc/passwd
+              - /etc/shadow
+              - 'php://filter'
+    sel_ok:
+        sc-status: 200
+        sc-bytes|gt: 0
+    condition: all of sel_*
+tags:
+    - attack.initial-access
+    - attack.collection
+    - attack.t1190
+level: critical
+---
+title: OS Command Injection Attempt In Web Request
+id: f2b9b69b-8954-4301-a4bd-58cb8c6a9654
+status: stable
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        UriDecoded|re|i: '(?:[;|&`\n]|\$\()\s*(?:id|whoami|uname\s+-a|cat\s+/etc/|wget\s|curl\s|nc\s|ncat\s|bash\s+-[ic]|sh\s+-c|python[23]?\s+-c|perl\s+-e|busybox\s)'
+    condition: selection
+tags:
+    - attack.initial-access
+    - attack.execution
+    - attack.t1190
+    - attack.t1059.004
+level: high
+---
+title: Log4Shell JNDI Injection Attempt
+id: 0c73f75b-b2e1-4cf8-a8a5-e5795afc4fbe
+status: stable
+description: JNDI lookup (CVE-2021-44228) in URI, User-Agent or Referer, including common obfuscations.
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        - UriDecoded|contains:
+              - '${jndi:'
+              - '${${'
+              - '${lower:'
+              - '${upper:'
+              - '${::-j}'
+              - '${env:'
+        - cs-user-agent|contains:
+              - '${jndi:'
+              - '${${'
+              - '${lower:'
+              - '${::-j}'
+        - cs-referer|contains:
+              - '${jndi:'
+              - '${${'
+    condition: selection
+tags:
+    - attack.initial-access
+    - attack.t1190
+    - cve.2021-44228
+level: critical
+---
+title: Server-Side Template Injection Attempt
+id: d0013758-bdcc-40c4-a2fb-c58ec751c575
+status: experimental
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        UriDecoded|contains:
+            - '{{7*7}}'
+            - '${7*7}'
+            - '<%= 7*7 %>'
+            - '{{config'
+            - '__class__.__mro__'
+            - '__globals__'
+            - 'T(java.lang.Runtime)'
+            - 'freemarker.template.utility.Execute'
+    condition: selection
+tags:
+    - attack.initial-access
+    - attack.t1190
+level: high
+---
+title: Cross-Site Scripting Attempt In Web Request
+id: 2b8b0a09-abf7-4c3f-b26f-59446d438dd4
+status: stable
+author: LinHawk
+logsource:
+    category: webserver
+detection:
+    selection:
+        UriDecoded|re|i: '<\s*script\b|javascript:\s*\w|\bon(error|load|mouseover|focus)\s*=|<\s*(img|svg|iframe)\b[^>]*\bsrc\s*='
+    condition: selection
+tags:
+    - attack.initial-access
+    - attack.t1189
+level: medium

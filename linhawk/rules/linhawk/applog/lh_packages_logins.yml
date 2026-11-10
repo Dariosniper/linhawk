@@ -1,0 +1,75 @@
+title: Offensive Or Dual-Use Tool Package Installed
+id: 7c1d5e2a-3b4f-4a6e-9d8c-2f1e0a9b7c31
+status: stable
+description: Package manager log (yum/dnf/dpkg/apt history) shows installation of a scanning, tunnelling or cracking tool.
+author: LinHawk
+logsource:
+    service: applog
+detection:
+    selection:
+        EventType: PACKAGE_CHANGE
+        Action|re|i: '^(install(ed)?|reinstall(ed)?|upgrade(d)?|updated)$'
+        Package|re|i: '(^|[\s,])(\d+:)?(nmap|ncat|nc|netcat[\w-]*|socat|tcpdump|wireshark[\w-]*|tshark|john|hydra|medusa|masscan|zmap|proxychains[\w-]*|tor|sshpass|hping3|aircrack-ng|sqlmap|nikto|responder|chisel|gost|frp[cs]?|ngrok|dsniff|ettercap[\w-]*|hashcat|ophcrack|kismet|mimipenguin)([-:._]\d|[-:.]|$)'
+    condition: selection
+falsepositives:
+    - Administrators and network troubleshooting
+tags:
+    - attack.command-and-control
+    - attack.discovery
+    - attack.t1105
+level: medium
+---
+title: Failed Login Recorded In btmp
+id: 4e8a2c6f-1d3b-4f5a-8c7e-9b0d2a4f6e13
+name: lh_btmp_failed
+status: stable
+description: Base rule for btmp brute force correlation.
+author: LinHawk
+logsource:
+    service: btmp
+detection:
+    selection:
+        EventType: FAILED_LOGIN
+    condition: selection
+level: informational
+---
+title: Brute Force Recorded In btmp
+id: 9a3f7b1c-5e2d-4c8a-b6f4-1d0e3c5a7b29
+status: stable
+description: 10 or more failed logins (btmp) from the same origin within 5 minutes - survives deletion of auth.log/secure.
+author: LinHawk
+correlation:
+    type: event_count
+    rules:
+        - lh_btmp_failed
+    group-by:
+        - SrcHost
+    timespan: 5m
+    condition:
+        gte: 10
+tags:
+    - attack.credential-access
+    - attack.t1110
+level: high
+---
+title: Remote Root Login Recorded In wtmp
+id: 2d6b9e4a-7c1f-4b3d-a8e5-6f0c1b2d3e47
+status: stable
+author: LinHawk
+logsource:
+    service: wtmp
+detection:
+    selection:
+        EventType: LOGIN
+        User: root
+        SrcHost|exists: true
+    filter_local:
+        SrcHost:
+            - ':0'
+            - ':0.0'
+            - localhost
+    condition: selection and not filter_local
+tags:
+    - attack.initial-access
+    - attack.t1078.003
+level: medium

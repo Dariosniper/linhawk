@@ -1,0 +1,206 @@
+title: Local User Account Created
+id: dd59c95e-ee7e-4bd2-b334-c2b2adee33e0
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: auth
+detection:
+    selection:
+        EventType: USER_CREATED
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.t1136.001
+level: medium
+---
+title: User Created With UID 0
+id: f797cdec-4fcd-4119-9dd0-b8a10880188d
+status: stable
+description: A new account with UID 0 is a root-equivalent backdoor.
+author: LinHawk
+logsource:
+    product: linux
+    service: auth
+detection:
+    selection:
+        EventType: USER_CREATED
+        TargetUid: '0'
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.privilege-escalation
+    - attack.t1136.001
+level: critical
+---
+title: User Added To Privileged Group
+id: 95e262d7-d9ff-4550-a4be-effdf033983a
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: auth
+detection:
+    selection:
+        EventType: USER_ADDED_TO_GROUP
+        Group:
+            - sudo
+            - wheel
+            - admin
+            - root
+            - adm
+            - docker
+            - lxd
+            - disk
+            - shadow
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.privilege-escalation
+    - attack.t1098
+level: high
+---
+title: Local User Account Deleted
+id: 9e9cdd62-131a-4774-b4ed-d93a93238b6d
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: auth
+detection:
+    selection:
+        EventType: USER_DELETED
+    condition: selection
+tags:
+    - attack.impact
+    - attack.t1531
+level: low
+---
+title: Root Password Changed
+id: 93414992-2ca3-4f2c-8d45-9eafebd123e6
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: auth
+detection:
+    selection:
+        EventType: PASSWORD_CHANGED
+        TargetUser: root
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.t1098
+level: medium
+---
+title: Sudo Command Executed
+id: de2dd9b0-8ec9-43ac-a873-faf925fe664e
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: sudo
+detection:
+    selection:
+        EventType: SUDO_COMMAND
+    filter_error:
+        SudoError|exists: true
+    condition: selection and not filter_error
+level: informational
+---
+title: Sudo Shell Or Interpreter Spawned As Root
+id: 38612b47-79d8-40a4-9c2c-5a1657f7c1db
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: sudo
+detection:
+    selection:
+        EventType: SUDO_COMMAND
+        TargetUser: root
+        Command|re: '^(/usr)?/bin/(ba|z|da|k|c|tc|fi)?sh( -[il]+)?$|^(/usr)?/bin/(su|python[0-9.]*|perl|ruby|vi|vim|less|find|awk|env)( |$)'
+    condition: selection
+falsepositives:
+    - Administrators opening a root shell
+tags:
+    - attack.privilege-escalation
+    - attack.t1548.003
+level: medium
+---
+title: User Not In Sudoers
+id: c7303b37-50df-4614-b7d7-bd87c62c286c
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: sudo
+detection:
+    selection:
+        SudoError|contains: 'NOT in sudoers'
+    condition: selection
+tags:
+    - attack.privilege-escalation
+    - attack.t1548.003
+level: medium
+---
+title: Sudo Authentication Failure
+id: 6db5ee93-f3a9-434b-99da-75b5348f9085
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: sudo
+detection:
+    selection:
+        - EventType: SUDO_AUTH_FAILED
+        - SudoError|contains: 'incorrect password'
+    condition: selection
+tags:
+    - attack.privilege-escalation
+    - attack.credential-access
+    - attack.t1548.003
+level: low
+---
+title: Crontab Modified
+id: 62e00a75-0e9c-4345-a798-b2d8afd1214d
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: syslog
+detection:
+    selection:
+        EventType: CRONTAB_CHANGE
+        Action: REPLACE
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.t1053.003
+level: medium
+---
+title: Suspicious Command Executed By Cron
+id: b907570b-2c1d-4366-a53b-9e8571e1dc73
+status: stable
+author: LinHawk
+logsource:
+    product: linux
+    service: cron
+detection:
+    selection:
+        EventType: CRON_EXEC
+        Command|contains:
+            - 'curl '
+            - 'wget '
+            - '/dev/tcp/'
+            - 'base64 -d'
+            - 'base64 --decode'
+            - 'nc -e'
+            - '/tmp/'
+            - '/dev/shm/'
+    condition: selection
+tags:
+    - attack.persistence
+    - attack.execution
+    - attack.t1053.003
+level: high

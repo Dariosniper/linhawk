@@ -1,0 +1,4 @@
+Tue Oct 13 10:58:37 CEST 2015 Executing: /sbin/dracut -f /boot/initramfs-3.10.0-229.el7.x86_64.img
+*** Including module: bash ***
+*** Including module: nss-softokn ***
+Tue Oct 13 10:59:02 CEST 2015 *** Creating initramfs image file '/boot/initramfs.img' done ***

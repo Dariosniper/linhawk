@@ -1,0 +1,4 @@
+{"__REALTIME_TIMESTAMP": "1793874000000000", "_HOSTNAME": "web01", "SYSLOG_IDENTIFIER": "kernel", "_PID": "0", "MESSAGE": "diamorphine: loading out-of-tree module taints kernel.", "_TRANSPORT": "kernel"}
+{"__REALTIME_TIMESTAMP": "1793874001000000", "_HOSTNAME": "web01", "SYSLOG_IDENTIFIER": "kernel", "_PID": "0", "MESSAGE": "diamorphine: module verification failed: signature and/or required key missing - tainting kernel", "_TRANSPORT": "kernel"}
+{"__REALTIME_TIMESTAMP": "1793874030000000", "_HOSTNAME": "web01", "SYSLOG_IDENTIFIER": "rsyslogd", "_PID": "700", "MESSAGE": "[origin software=\"rsyslogd\"] exiting on signal 15.", "_TRANSPORT": "syslog"}
+{"__REALTIME_TIMESTAMP": "1793874060000000", "_HOSTNAME": "web01", "SYSLOG_IDENTIFIER": "systemd", "_PID": "1", "MESSAGE": "Started sysupd.service - System Update Daemon.", "_TRANSPORT": "syslog", "_SYSTEMD_UNIT": "init.scope"}

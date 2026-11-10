@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linhawk"
+version = "0.3.2"
+description = "Fast forensics timeline generator and Sigma threat hunting tool for Linux logs (Hayabusa-style)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["PyYAML>=6.0", "tzdata; sys_platform == 'win32'"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+build = ["pyinstaller>=6.0", "tzdata"]
+
+[project.scripts]
+linhawk = "linhawk.cli:main"
+
+[tool.setuptools]
+packages = ["linhawk"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+linhawk = ["rules/**/*.yml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

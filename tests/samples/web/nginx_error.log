@@ -1,0 +1,2 @@
+2026/11/05 10:03:00 [error] 812#812: *77 FastCGI sent in stderr: "PHP message: PHP Parse error: syntax error in /var/www/html/index.php(1) : eval()'d code on line 1" while reading response header from upstream, client: 203.0.113.82, server: www.example.org, request: "GET /x.php HTTP/1.1", upstream: "fastcgi://unix:/run/php.sock", host: "www.example.org"
+2026/11/05 10:04:00 [alert] 800#800: worker process 812 exited on signal 6 (core dumped)

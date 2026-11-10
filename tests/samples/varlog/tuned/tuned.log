@@ -1,0 +1,4 @@
+2015-10-13 10:00:00,123 INFO     tuned.daemon.daemon: starting tuning
+2015-10-13 10:00:01,456 ERROR    tuned.plugins.base: failed to apply
+Traceback (most recent call last):
+  File "x.py", line 1
